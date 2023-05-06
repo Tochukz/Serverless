@@ -1,9 +1,13 @@
 # Serverless Framework
-[Docs](https://www.serverless.com/framework/docs/)    
-[Tutorial](https://www.serverless.com/framework/docs/tutorial)
+[Docs](https://www.serverless.com/framework/docs/)     
+[Tutorial](https://www.serverless.com/framework/docs/tutorial)   
+[CLI Reference](https://www.serverless.com/framework/docs/providers/aws/cli-reference/)   
 
-__Serverless Framework__  
-The Serverless Framework is a powerful deployment and development tool. It is an integral piece to cloud functions development.  Install the Serverless Framework CLI
+## Get started  
+The Serverless Framework is a powerful deployment and development tool. It is an integral piece to cloud functions development.  
+
+__Install serverless CLI__  
+Install the Serverless Framework CLI
 ```
 $ npm install -g serverless
 ```  
@@ -17,22 +21,25 @@ $ cd aws-service
 $ npm init -y
 $ npm install aws-sdk
 ```  
-The template defines which cloud provider you are using along with the runtime. Similar templates for Azure and Google cloud are `azure-nodejs` and `google-nodejs` respectively.  The path defined the same of the service you are creating.  See the [example code](https://github.com/mgstigler/Serverless)
+The template defines which cloud provider you are using along with the runtime. Similar templates for Azure and Google cloud are `azure-nodejs` and `google-nodejs` respectively.  The path defined the name of the service you are creating.  See the [example code](https://github.com/mgstigler/Serverless)
 
-Another way to create a server less is to use the CLI wizard. Just run
+Another way to create a serverless application is to use the CLI wizard. Just run
 ```
 $ serverless
 ```
-and follow the prompt.  
+and follow the prompt.   
+
 You can also use the github repo as the value for the template flag
 ```
-$ serverless --template-url=https://github.com/serverless/examples/tree/v3/...
+$ serverless --template-url=https://github.com/serverless/examples/tree/v3/aws-node-typescript-nest
 ```  
-After your serverless app is created you will be prompted login or register for Serverless Dashbaord of which you should.     
-Do not deploy to AWS if prompted to do so until you have setup the a _provider_.  
+See [example serverless templates](https://github.com/serverless/examples) for more tables
+
+After your serverless app is created you will be prompted to login or register for Serverless Dashbaord of which you should.     
+Do not deploy to AWS if prompted to do so until you have setup the _provider_.  
 
 __Provider__  
-You need to connect an AWS account in order to grant Serverless permission to run Lambdas, access DynamoDB data, and probe other services.  
+You need to connect an AWS account in order to grant the Serverless CLI permission to run Lambdas, access DynamoDB data, and probe other services.  
 A provider is a mechanism to connect your Serverless account with AWS and other cloud service providers.  
 The Serverless Framework provides a few options to enable connectivity: a _Simple automatic_ flow with generalised permissions, an _Access/Secret Key_ flow for manual configuration, and an _ARN option_ for ID-based role access.
 
@@ -55,10 +62,11 @@ To deploy the project, `cd` into the project folder and
 ```
 $ serverless deploy
 ```
-The will use the provider you created to deploy to your AWS account or your AWS CLI credential.   
+The will use the provider you created or your AWS CLI credential to deploy to your AWS account.     
 After the deployment, you should see the API endpoint in the terminal output.  
+
 __API Info__  
-To see details about your serverless application run
+To see details about your running serverless application
 ```
 $ serverless info
 ```
@@ -74,8 +82,18 @@ This will configured your service on the Serverless Dashboard at https://app.ser
 __Invoke function__
 To invoke your function directly, inside of your project directory, run
 ```
-$ serverless invoke
+$ serverless invoke --function api
 ```
+
+__Deploy on cloud faster__  
+To deploy code changes quickly, skip the _serverless deploy_ command which is much slower since it triggers a full AWS CloudFormation update.  
+Instead, deploy code and configuration changes to individual AWS Lambda functions in seconds via the _deploy function_ command, with _-f_ set to the function you want to deploy.
+```
+$ serverless deploy function -f my-api
+```  
+This command simply swaps out the zip file that your CloudFormation stack is pointing toward. This is a much faster way of deploying changes in code.  
+__Caution:__ This puts your function in an inconsistent state that is out of sync with your CloudFormation stack. Use this for faster development cycles and not production deployments.
+
 
 __Service logs__   
 To view your service log, inside of your project directory, run
@@ -86,13 +104,12 @@ $ serverless logs
 __The Serverless Dashboard__  
 [Serverless Dashboard](app.serverless.com) is a tool provided by the Serverless Framework to help make managing connections to AWS easier, manage configuration data for your services, monitoring capabilities and the ability to read logs for your Lambda functions amongst many other features.  
 
-__Delete App__  
+__Delete App__   
 To remove your service, run
 ```
 $ serverless remove
 ```
 This will delete all the AWS resources created by your project and also remove the service from Serverless Dashboard.
-
 
 __Working Offline__  
 Install the serverless-offline plugin in your project  
@@ -108,4 +125,52 @@ __Configure AWS Access Key for Serverless CLI__
 ```
 $ serverless config credentials --provider aws --key XXXXXXXXXXX --secret XXXXXXXXXX
 ```
-This it not needed if you have already configured AWS CLI on your machine. 
+This is not needed if you have already configured AWS CLI on your machine.
+
+## Serverless Framework Concepts
+The Serverless Framework manages your code as well as your infrastructure
+It supports multiple languages (Node.js, Python, Java, and more).  
+Here are the Framework's main concepts and how they pertain to AWS and Lambda.
+
+#### Functions
+Each function is an independent unit of execution and deployment, like a microservice.  
+
+#### Events
+Functions are triggered by events. Events come from other AWS resources, for example:
+* An HTTP request on an API Gateway URL (e.g. for a REST API)
+* A new file uploaded in an S3 bucket (e.g. for an image upload)
+* A CloudWatch schedule (e.g. run every 5 minutes)
+* A message in an SNS topic
+
+When you configure an event on a Lambda function, Serverless Framework will automatically create the infrastructure needed for that event
+
+#### Resources
+Resources are AWS infrastructure components which your functions use such as a DynamoDB table or an S3 bucket.
+Anything that can be defined in CloudFormation is supported by the Serverless Framework.  
+
+#### Services
+A service is the Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application.  
+
+#### Plugins
+You can overwrite or extend the functionality of the Framework using plugins.
+
+__Alternative configuration format__   
+You can also define the service configuration in JSON _(serverless.json)_, JavaScript _(serverless.js)_ or TypeScript _(serverless.ts)_.   
+
+## Usage
+#### Deploying
+__Deployment method__  
+It is possible to use CloudFormation direct deployments instead.  
+Direct deployments are faster and have no downsides (unless you specifically use the generated change sets). They will become the default in Serverless Framework 4.  
+```
+provider:
+  name: aws
+  deploymentMethod: direct
+```
+
+
+
+
+
+## Learn more
+How to configure serverless template [serverless.yaml](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)  
