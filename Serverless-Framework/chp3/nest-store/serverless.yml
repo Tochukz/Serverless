@@ -1,0 +1,17 @@
+service: nest-store
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-jetpack
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-west-2 
+
+functions:
+  api:
+    handler: dist/lambda.handler
+    events:
+      - httpApi: '*'
