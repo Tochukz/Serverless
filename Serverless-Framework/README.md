@@ -89,7 +89,7 @@ __Deploy on cloud faster__
 To deploy code changes quickly, skip the _serverless deploy_ command which is much slower since it triggers a full AWS CloudFormation update.  
 Instead, deploy code and configuration changes to individual AWS Lambda functions in seconds via the _deploy function_ command, with _-f_ set to the function you want to deploy.
 ```
-$ serverless deploy function -f my-api
+$ serverless deploy function --function my-api
 ```  
 This command simply swaps out the zip file that your CloudFormation stack is pointing toward. This is a much faster way of deploying changes in code.  
 __Caution:__ This puts your function in an inconsistent state that is out of sync with your CloudFormation stack. Use this for faster development cycles and not production deployments.
@@ -167,9 +167,9 @@ provider:
   name: aws
   deploymentMethod: direct
 ```
-
-
-
+__Tips__
+* Use this in your CI/CD systems, as it is the safest method of deployment.
+* use _verbose_ mode to print the progress during the deploymen, `serverless deploy --verbose`
 
 
 ## Learn more
