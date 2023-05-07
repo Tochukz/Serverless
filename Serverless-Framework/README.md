@@ -172,7 +172,7 @@ __Tips__
 * use _verbose_ mode to print the progress during the deploymen, `serverless deploy --verbose`
 
 
-## Chapter 2: Custom ExpressJS application with Serverless
+## Chapter 2: Traditional ExpressJS application with Serverless
 __Description__   
 In the previous chapter, we creates serverless application using the _serverless CLI_ tool and templates available in the Serverless framwework ecosystem.  
 Here we create out own ExpressJS application using the _express-generator_ and then modify it to run in a Lambda environment using the Serverless framework.  
@@ -223,15 +223,61 @@ The `.serverless` directory contains the app zip and CloudFormation template gen
 6. __Update the serverless.yml__  
 You can then update the _serverless.yml_ file according to your application's need.   
 
-## Chapter 3: Custom NestJS application with Serverless  
+## Chapter 3: Traditional NestJS application with Serverless  
 __Description__  
 Here we create our own NestJS application using the _Nest CLI_ and then modify it to run in a Lambda environment using the Serverless framework.  
 
 #### Setup
-1. Create a new NestJS application
+1. __Create a new NestJS application__  
 ```
-$ 
+$ nest new nest-store
+```  
+2. __Install dependencies__  
+```
+$ npm install @vendia/serverless-express  
+$ npm install --save-dev serverless-jetpack
+```
+3. __Add serverless.yml__  
+Add a basic _serverless.yml_ configuration file
+```bash
+# serverless.yml
+service: nest-store
+frameworkVersion: '3'
+plugins:
+    - serverless-jetpack
+provider:
+    name: aws
+    runtime: nodejs18.x
+    region: eu-west-2
+functions:
+    api:
+      handler: dist/lambda.handler
+      events:
+        - httpApi: '*'  
+```
+4. __Add a lambda handler__  
+```bash
+# lambda.ts
+import { configure as serverlessExpress } from '@vendia/serverless-express';
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+let cachedServer;
+export const handler = async (event, context) => {
+  if (!cachedServer) {
+    const nestApp = await NestFactory.create(AppModule);
+    await nestApp.init();
+    cachedServer = serverlessExpress({ app: nestApp.getHttpAdapter().getInstance() });
+  }
+
+  return cachedServer(event, context);
+}
+```  
+5. __Deploy the application__   
+```
+$ nest build
+$ serverless deploy
 ```
 
 ## Learn more
 How to configure serverless template [serverless.yaml](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)  
+[Deploy a NestJS API to AWS Lambda with Serverless Framework](https://dev.to/aws-builders/deploy-a-nestjs-api-to-aws-lambda-with-serverless-framework-4poo)  

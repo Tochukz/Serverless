@@ -1,6 +1,6 @@
-# Nest Serverless 
+# Nest Serverless
 This application is Nest.js application wrapped using the serverless framework for Lambda support.  
-It uses a Cloudformation template to define an RDS database instance to provide database support. 
+It uses a Cloudformation template to define an RDS database instance to provide database support.
 
 ### Deployment and cleanup
 __Check for running app__  
@@ -15,14 +15,14 @@ $ serverless deploy
 ```  
 
 __Clean up__  
-To cleanup after testing 
+To cleanup after testing
 ```
-$ serverless remove 
+$ serverless remove
 ```
 
-### Database 
-The cloudformation template is used to provision tan RDS database instance to support the application. 
-___Deploy Cloudformation stack__  
+### Database
+The cloudformation template is used to provision tan RDS database instance to support the application.
+__Deploy Cloudformation stack__  
 ```
 $ aws cloudformation deploy --stack-name NestAppStack --template NestAppTemplate.yaml --parameter-overrides DbUsername=nestApp_dbUser DbPassword=primeTrime22
 ```  
@@ -32,10 +32,16 @@ $ aws cloudformation deploy --stack-name NestAppStack2 --template NestAppTemplat
 ```  
 
 __Check stack__  
-In the case of a failed deployment of the stack, you can check what went wrong using the _describe-stack-events_ action. 
+In the case of a failed deployment of the stack, you can check what went wrong using the _describe-stack-events_ action.
 ```
 $ aws cloudformation describe-stack-events --stack-name NestAppStack
 ```  
+
+__Get the template output__  
+After successful deploy, you can get the outputs such as the database endpoint defined in the template.  
+```
+$ aws cloudformation list-exports
+```
 
 __Remove the stack__    
 ```
