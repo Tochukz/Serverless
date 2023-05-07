@@ -3,7 +3,7 @@
 [Tutorial](https://www.serverless.com/framework/docs/tutorial)   
 [CLI Reference](https://www.serverless.com/framework/docs/providers/aws/cli-reference/)   
 
-## Get started  
+## Chapter 1: Get started  
 The Serverless Framework is a powerful deployment and development tool. It is an integral piece to cloud functions development.  
 
 __Install serverless CLI__  
@@ -171,6 +171,67 @@ __Tips__
 * Use this in your CI/CD systems, as it is the safest method of deployment.
 * use _verbose_ mode to print the progress during the deploymen, `serverless deploy --verbose`
 
+
+## Chapter 2: Custom ExpressJS application with Serverless
+__Description__   
+In the previous chapter, we creates serverless application using the _serverless CLI_ tool and templates available in the Serverless framwework ecosystem.  
+Here we create out own ExpressJS application using the _express-generator_ and then modify it to run in a Lambda environment using the Serverless framework.  
+
+#### Setup
+1. __Generate a new express application__  
+First, generate the express application using the express-generator.  
+```
+$ npx express-generator --pug  xpress-store
+$ cd xpress-store
+$ npm install
+```  
+2. __Install the dependency__  
+Second, install all the npm packages to provide serverless support for the application
+```
+$ npm install serverless-http
+```
+3. __Add a handler__  
+The handler wraps your express app for serverless
+```bash
+# bin/handler.js
+const serverless = require('serverless-http');
+const app = require("../app");
+module.exports.main = serverless(app);
+```
+4. __Add a basic serverless.yml file__  
+```bash
+# serverless.yml
+service: xpress-store
+frameworkVersion: '3'
+provider:
+    name: aws
+    runtime: nodejs18.x
+functions:
+    api:
+      handler: bin/handler.main
+      events:
+        - httpApi: '*'
+```  
+
+5. __Deploy the application__   
+```
+$ serverless deploy
+```  
+Copy the endpoint from the output and test it with a browser.  
+The `.serverless` directory contains the app zip and CloudFormation template generate by the Serverless CLI.  
+
+6. __Update the serverless.yml__  
+You can then update the _serverless.yml_ file according to your application's need.   
+
+## Chapter 3: Custom NestJS application with Serverless  
+__Description__  
+Here we create our own NestJS application using the _Nest CLI_ and then modify it to run in a Lambda environment using the Serverless framework.  
+
+#### Setup
+1. Create a new NestJS application
+```
+$ 
+```
 
 ## Learn more
 How to configure serverless template [serverless.yaml](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)  
