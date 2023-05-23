@@ -9,9 +9,20 @@ provider:
   name: aws
   runtime: nodejs18.x
   region: eu-west-2 
+  iam: 
+    role: 
+      statement: 
+        - Effect: Allow 
+          Action: 
+             - rds:*
+          Resource:
+            Resource: 'arn:aws:rds:eu-west-2:*:*'
 
 functions:
   api:
+    name: ${sls:stage}-NestStoreLambda # optional, Deployed Lambda name
+    description: Lambda function for an online book store API
     handler: dist/lambda.handler
+    # memorySize: 512
     events:
       - httpApi: '*'

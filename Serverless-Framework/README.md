@@ -256,7 +256,7 @@ functions:
         - httpApi: '*'  
 ```
 4. __Add a lambda handler__  
-```bash
+```
 # lambda.ts
 import { configure as serverlessExpress } from '@vendia/serverless-express';
 import { NestFactory } from '@nestjs/core';
@@ -271,12 +271,178 @@ export const handler = async (event, context) => {
 
   return cachedServer(event, context);
 }
-```  
+```   
+
 5. __Deploy the application__   
 ```
 $ nest build
 $ serverless deploy
 ```
+
+## Chapter 4: Working with the Serverless.yml file
+#### Deploying
+__Deploy all__  
+To deploy all your Functions, Events and Resources defined in your _Serveless.yml_ file,
+```
+$ serverless deploy
+```  
+You may use the `--force` flag to enforce deployment or the `--config` flag to specify a different configuration file.
+
+__Deploy Function__  
+This deployment method  simply overwrites the zip file of the current function on AWS. It is much faster, since it does not rely on CloudFormation.
+```
+$ serverless deploy function --function myFunction
+```  
+You can use `--update-config` to change only Lambda configuration without deploying code.  
+
+__Deploying a Package__  
+The deploy method takes a deployment directory that has already been created with `serverless package` command and deploys it to the cloud provider.  
+```
+$ serverless deploy --package path-to-package
+```
+
+#### Packaging
+__Packaging CLI command__  
+Running the following `package` command will build and save all of the deployment artifacts in the service's `.serverless` directory
+```
+$ serverless package
+```
+You can use the `--package` option to change the destination path.
+
+__Packaging Configuration__    
+The `package` section of the configuration describe how the application should be packaged.  
+
+```bash
+service: my-service
+package:
+  patterns:
+    - "!node_modules" # excludes node_modules
+```
+You can use `patterns` to specify what directory or file to exclude and `serverless` will exclude them while packaging your application.  
+Or you can use `artifact` to specify your own already packaged application
+```bash
+service: my-service
+package:
+  artifact: path/to/dist.zip
+```
+You artifact may point to an S3 object.
+```bash
+service: my-service
+package:
+  artifact: s3://bucket/path/to/dist.zip
+```
+Above we specify package at the service level, but package me be defined at the function level, and it could also be an S3 object.   
+
+```bash
+function:
+  api:
+    handler: lambda.handler
+    package:
+      artifact: s3://bucket/path/to.zip
+
+```
+
+#### Testing
+Write your business logic so that it is separate from your _FaaS_ provider (e.g., AWS Lambda), to keep it provider-independent, reusable and more easily testable.  
+
+#### Serverless Framework Services
+
+## Chapter 5: Serverless and Dotnet
+### Setup  
+It is assumed that you already have _dotnet_ installed so the you can run `dotnet` commands on your terminal.
+
+__Install dotnet lambda tool__  
+```
+$ dotnet tool install -g Amazon.Lambda.Tools
+$ dotnet lambda --help
+```  
+
+__Install dotnet lambda test tool__  
+```
+$ dotnet tool install -g Amazon.Lambda.TestTool-6.0
+$ dotnet tool list -g
+```
+
+__Installl VSCode C# extension__  
+If you are using VSCode, install the C# extension if you have not already done so.  
+```
+$ code --install-extension ms-dotnettools.csharp --force
+```  
+
+For how to debug locally, read [How to Debug .NET Core Lambda Functions Locally](https://itnext.io/how-to-debug-net-core-lambda-functions-locally-with-the-serverless-framework-dd1670bc22e2)
+
+#### Serverless template for Dotnet  
+__Create dotnet serverless project__  
+Here we create a dotnet serverless application using a serverless dotnet template
+```
+$ serverless --template-url https://github.com/pharindoko/serverlessDotNetStarter
+```
+Following the prompt, enter a project name. I named my application _NetApp_.
+Restore the project dependencies
+```
+$ cd NetApp
+$ dotnet restore
+```  
+__Build and deploy the application__  
+```
+$ ./build.sh
+$ serverless deploy
+```
+For windows, execute the `build.cmd` script instead.  
+The build script will build and package the code to the path `bin/release/net6.0/hello.zip`.  
+
+__Setup local testing__  
+To configure the application for local testing, update the `.vscode/launch.json` file and replace the `{user}` in the line
+```
+"program": "/Users/{userid}/.dotnet/tools/dotnet-lambda-test-tool-6.0",
+```
+with your username of your system.  
+To start the local debugging, press F5. This will start a debugging session and fireup the browser with a testing interface similar to AWS Lambda Console event test interface.
+
+__Clean up__  
+```
+$ serverless remove
+```
+
+#### Traditional dotnet application with Serverless  
+Here we create a traditional dotnet application using _dotnet_ cli and then configure the application for Lambda.   
+__Create a dotnet MVC project__  
+```bash
+# List the dotnet templates and select shortname the one to use
+$ dotnet new list
+$ mkdir NetStore
+$ cd NetStore
+# create dotnet mvc project without authentication
+$ dotnet new mvc -au None
+# start the application
+$ dotnet run
+$ curl http://localhost:5109
+```
+Replace the url for the curl command with the url generated when you run the application.  
+
+__Create a dotnet WebApi project__  
+```
+$ mkdir NetStoreAPI
+$ dotnet new webapi -au None
+$ dotnet run
+$ curl http://localhost:5288/WeatherForecast
+```
+Remember to replace the port with the port number of the generate url when you run the application.  
+
+__Configure the dotnet application for Lambda__  
+Fisrt, install the `Amazon.Lambda.AspNetCoreServer.Hosting` nuget package.
+```
+dotnet add package Amazon.Lambda.AspNetCoreServer.Hosting --version 1.6.0
+```
+Update the `Program.cs` file and add the following line
+```
+builder.Services.AddAWSLambdaHosting(LambdaEventSource.HttpApi);
+```
+
+[Building a Serverless ASP.NET Core Web API with AWS Lambda using Function URLs](https://coderjony.com/blogs/building-a-serverless-aspnet-core-web-api-with-aws-lambda-using-function-urls)  
+
+## Chapter 6: Serverless and PHP
+Todo: read this [Introducing the new Serverless LAMP stack](https://aws.amazon.com/blogs/compute/introducing-the-new-serverless-lamp-stack/)
 
 ## Learn more
 How to configure serverless template [serverless.yaml](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)  
