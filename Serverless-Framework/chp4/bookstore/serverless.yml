@@ -1,0 +1,55 @@
+service: nest-store
+frameworkVersion: '3'
+plugins:
+    - serverless-jetpack
+
+provider:
+    name: aws
+    runtime: nodejs18.x
+    region: eu-west-2
+    deploymentMethod: direct
+    stage: development
+    deploymentBucket: tochukwu1-bucket
+
+# package: 
+#   individually: true
+#   patterns:
+#     - '!src'
+#     - '!node_modules'
+#     - 'dist'
+
+package:
+  individually: true
+  exclude:
+    - ./**
+
+# layers:
+#   nodejs:
+#     path: node_modules
+#     description: "Node module"
+#     compatibleRuntimes:
+#       - nodejs18.x
+
+functions:
+    bookstore:
+      handler: dist/lambda.handler
+      events:
+        - httpApi: '*'
+      package: 
+        include:
+          - dist/**
+          - package.json
+
+# resources:
+#   BookStoreDatabase:
+#     Type: AWS::RDS::DBInstance
+#     Properties:
+#       AllocatedStorage: 20
+#       DBInstanceClass: db.t3.micro
+#       DBInstanceIdentifier: songs-database
+#       PubliclyAccessible: true
+#       StorageType: gp2
+#       MasterUsername: xxx # change
+#       MasterUserPassword: yyy # change
+#       Engine: mysql
+#       EngineVersion: 8.0.28
