@@ -105,3 +105,81 @@ SAM templates are an extension of CloudFormation templates. Any resource that yo
 __Useful Resources__  
 [AWS Lambda Custom Runtime for PHP: A Practical Example](https://aws.amazon.com/blogs/apn/aws-lambda-custom-runtime-for-php-a-practical-example/)     
 [The Complete AWS SAM Workshop](https://catalog.workshops.aws/complete-aws-sam/en-US)   
+
+## Chapter 5: Serverless and Dotnet
+### Setup and installations
+It is assumed that you already have _dotnet_ installed so that you can run `dotnet` commands on your terminal.
+
+__Install dotnet lambda tool__  
+```
+$ dotnet tool install -g Amazon.Lambda.Tools
+$ dotnet lambda --help
+```  
+If you already have the tool installed and need to update
+```
+$ dotnet tool update -g Amazon.Lambda.Tools
+```
+
+__Install dotnet lambda test tool__  
+```
+$ dotnet tool install -g Amazon.Lambda.TestTool-6.0
+$ dotnet tool list -g
+```
+
+__Dotnet CLI Templates__  
+Next, we install the _Amazon.Lambda.Templates_ NuGet package which adds new templates to you _dotnet new_ collection.  
+These new template supports Lambda function out of the box.  
+```
+$ dotnet new -i "Amazon.Lambda.Templates::*"
+```  
+This should list the newly installed Lambda templates after install.    
+Now when you run `dotnet new list` all the Lambda template will be included along with the traditional template.  
+To list only the Lambda templates
+```
+$ dotnet new list Lambda
+```
+
+__Install VSCode C# extension__  
+If you are using VSCode, install the C# extension if you have not already done so.  
+```
+$ code --install-extension ms-dotnettools.csharp --force
+```  
+
+__Create new project Lambda project__  
+Create a new project using one of the Lambda Template's shortname
+```
+$ mkdir LambAPI
+$ cd LambAPI
+$ dotnet new serverless.AspNetCoreWebAPI
+$ dotnet new gitignore
+```
+You can take advantage of the _Lambda ASP.NET Core Minimal API_ template.
+```
+$ mkdir LambMinAPI
+$ cd LambMinAPI
+$ dotnet new serverless.AspNetCoreMinimalAPI
+$ dotnet new gitignore
+```
+Minimal APIs are ideal for microservices.    
+Learn more about [Minimal API with ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api?view=aspnetcore-7.0&tabs=visual-studio)
+
+__Deploy the application__  
+```
+$ cd LambAPI/src/LambAPI
+$ cp serverless.template template.json
+$ sam validate
+$ sam deploy --stack-name LambAPI --guided
+```
+Follow the prompt and make sure the say yes to the quest: "Save arguments to configuration file".  A _samconfig.toml_ file will be created after the deploy.  
+
+__Cleanup__  
+```
+$ sam delete
+```
+
+__Debugging__  
+For how to debug locally, read [How to Debug .NET Core Lambda Functions Locally](https://itnext.io/how-to-debug-net-core-lambda-functions-locally-with-the-serverless-framework-dd1670bc22e2)
+
+__Learn more__  
+[AWS Lambda Dotnet](https://github.com/aws/aws-lambda-dotnet)
+[Building a Serverless ASP.NET Core Web API with AWS Lambda using Function URLs](https://coderjony.com/blogs/building-a-serverless-aspnet-core-web-api-with-aws-lambda-using-function-urls)  
