@@ -79,7 +79,7 @@ $ serverless
 ```
 This will configured your service on the Serverless Dashboard at https://app.serverless.com/your-username/apps/.  
 
-__Invoke function__
+__Invoke function__  
 To invoke your function directly, inside of your project directory, run
 ```
 $ serverless invoke --function api
@@ -174,8 +174,8 @@ __Tips__
 
 ## Chapter 2: Traditional ExpressJS application with Serverless
 __Description__   
-In the previous chapter, we creates serverless application using the _serverless CLI_ tool and templates available in the Serverless framwework ecosystem.  
-Here we create out own ExpressJS application using the _express-generator_ and then modify it to run in a Lambda environment using the Serverless framework.  
+In the previous chapter, we creates serverless application using the _serverless CLI_ tool and templates available in the Serverless Framework ecosystem.  
+Here we create our own ExpressJS application using the _express-generator_ and then modify it to run in a Lambda environment using the Serverless Framework.  
 
 #### Setup
 1. __Generate a new express application__  
@@ -348,14 +348,18 @@ Write your business logic so that it is separate from your _FaaS_ provider (e.g.
 #### Serverless Framework Services
 
 ## Chapter 5: Serverless and Dotnet
-### Setup  
-It is assumed that you already have _dotnet_ installed so the you can run `dotnet` commands on your terminal.
+### Setup and installations
+It is assumed that you already have _dotnet_ installed so that you can run `dotnet` commands on your terminal.
 
 __Install dotnet lambda tool__  
 ```
 $ dotnet tool install -g Amazon.Lambda.Tools
 $ dotnet lambda --help
 ```  
+If you already have the tool installed and need to update
+```
+$ dotnet tool update -g Amazon.Lambda.Tools
+```
 
 __Install dotnet lambda test tool__  
 ```
@@ -363,17 +367,41 @@ $ dotnet tool install -g Amazon.Lambda.TestTool-6.0
 $ dotnet tool list -g
 ```
 
-__Installl VSCode C# extension__  
+__Dotnet CLI Templates__  
+Next, we install the _Amazon.Lambda.Templates_ NuGet package which adds new templates to you _dotnet new_ collection.  
+These new template supports Lambda function out of the box.  
+```
+$ dotnet new -i "Amazon.Lambda.Templates::*"
+```  
+This should list the newly installed Lambda templates after install.    
+Now when you run `dotnet new list` all the Lambda template will be included along with the traditional template.  
+To list only the Lambda templates
+```
+$ dotnet new list Lambda
+```
+
+__Install VSCode C# extension__  
 If you are using VSCode, install the C# extension if you have not already done so.  
 ```
 $ code --install-extension ms-dotnettools.csharp --force
 ```  
 
+__Create new project Lambda project__  
+Create a new project using one of the Lambda Template's shortname
+```
+$ mkdir LambAPI
+$ cd LambAPI
+$ dotnet new serverless.AspNetCoreWebAPI
+```
+__NB:__ The applications created using a _dotnet lambda template_ features a _serverless.template_ file. This file is a _SAM_ (Serverless Applicaton Model) template. SAM is an alternative framework to the _ServerlessFramework_. See the [AWS-SAM](https://github.com/Tochukz/Serverless/tree/master/AWS-SAM) section for details.  
+
+__Debugging__  
 For how to debug locally, read [How to Debug .NET Core Lambda Functions Locally](https://itnext.io/how-to-debug-net-core-lambda-functions-locally-with-the-serverless-framework-dd1670bc22e2)
 
 #### Serverless template for Dotnet  
 __Create dotnet serverless project__  
-Here we create a dotnet serverless application using a serverless dotnet template
+In the last section, we created application using _dotnet lambda templates_.   
+Here we create a dotnet serverless application using a _serverless dotnet template_ hosted on github.   
 ```
 $ serverless --template-url https://github.com/pharindoko/serverlessDotNetStarter
 ```
@@ -383,8 +411,10 @@ Restore the project dependencies
 $ cd NetApp
 $ dotnet restore
 ```  
+
 __Build and deploy the application__  
 ```
+$ cd NetApp
 $ ./build.sh
 $ serverless deploy
 ```
@@ -403,10 +433,13 @@ __Clean up__
 ```
 $ serverless remove
 ```
+[Serverless DotNet BoilerPlate](https://www.serverless.com/examples/serverlessDotNetSample)    
 
 #### Traditional dotnet application with Serverless  
-Here we create a traditional dotnet application using _dotnet_ cli and then configure the application for Lambda.   
-__Create a dotnet MVC project__  
+Here we look at how to configure an existing dotnet core application to support Lambda function.   
+First we create a traditional dotnet application using _dotnet_ cli and after that, configure the application for Lambda.   
+__Create an MVC app__  
+Create an dotnet MVC project:
 ```bash
 # List the dotnet templates and select shortname the one to use
 $ dotnet new list
@@ -420,7 +453,8 @@ $ curl http://localhost:5109
 ```
 Replace the url for the curl command with the url generated when you run the application.  
 
-__Create a dotnet WebApi project__  
+__Create a WebApi app__  
+If you prefer a WebAPI project instead of the MVC one, go for it:  
 ```
 $ mkdir NetStoreAPI
 $ dotnet new webapi -au None
@@ -430,16 +464,61 @@ $ curl http://localhost:5288/WeatherForecast
 Remember to replace the port with the port number of the generate url when you run the application.  
 
 __Configure the dotnet application for Lambda__  
-Fisrt, install the `Amazon.Lambda.AspNetCoreServer.Hosting` nuget package.
+First, install the `Amazon.Lambda.AspNetCoreServer.Hosting` nuget package.
 ```
-dotnet add package Amazon.Lambda.AspNetCoreServer.Hosting --version 1.6.0
+$ cd NetStoreAPI
+$ dotnet add package Amazon.Lambda.AspNetCoreServer.Hosting --version 1.6.0
 ```
 Update the `Program.cs` file and add the following line
 ```
 builder.Services.AddAWSLambdaHosting(LambdaEventSource.HttpApi);
 ```
+When the ASP.NET Core project is run locally, _AddAWSLambdaHosting_ does nothing, allowing the normal .NET _Kestrel web server_ to handle the local experience. When running in Lambda, AddAWSLambdaHosting swaps out Kestrel with _Amazon.Lambda.AspNetCoreServer_ allowing Lambda and API Gateway to act as the web server instead of Kestrel.  
 
+__Dotnet Core 3.0__  
+The use of the `Amazon.Lambda.AspNetCoreServer.Hosting` nuget package as described above is for Dotnet Core the has the Minimal API feature such as dotnet 6+.   
+If your application does not support the Minimal API feature, use the _Amazon.Lambda.AspNetCoreServer_ instead
+```
+$ dotnet add package Amazon.Lambda.AspNetCoreServer
+```
+After that, you need to create a Lambda entry point class.
+```
+using Amazon.Lambda.AspNetCoreServer;
+using Microsoft.AspNetCore.Hosting;
+namespace MyStoreApp
+{
+    public class LambdaEntryPoint : APIGatewayHttpApiV2ProxyFunction
+    {
+        protected override void Init(IWebHostBuilder builder)
+        {
+            builder.UseStartup<Startup>();
+        }
+    }
+}
+```
+
+__For Visual Studio__  
+If you are using Visual Studio, update you _.csproj_ file.
+```
+...
+<PropertyGroup>
+   ...
+  <AWSProjectType>Lambda</AWSProjectType>
+</PropertyGroup>
+```
+This will let _AWS Toolkit for Visual Studio_ know that your project is an AWS project. Now, when you right-click on your project, you will start getting _Publish to AWS..._ options
+
+__Package the application__  
+```
+$ cd NetStore
+$ dotnet lambda package
+```
+This produce a release configuration artifact that can be found at `bin/Release/net7.0/NetStore.zip`.  
+
+__Learn more__  
+[AWS Lambda Dotnet](https://github.com/aws/aws-lambda-dotnet)
 [Building a Serverless ASP.NET Core Web API with AWS Lambda using Function URLs](https://coderjony.com/blogs/building-a-serverless-aspnet-core-web-api-with-aws-lambda-using-function-urls)  
+[Serverless Framework for Deploy a .NET Core 3.1 Web API Lambda Function](https://charlesdotfish.medium.com/using-the-serverless-framework-to-deploy-a-net-core-3-1-web-api-lambda-function-7465cf7dfe96)
 
 ## Chapter 6: Serverless and PHP
 Todo: read this [Introducing the new Serverless LAMP stack](https://aws.amazon.com/blogs/compute/introducing-the-new-serverless-lamp-stack/)
