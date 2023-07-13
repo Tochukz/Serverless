@@ -1,0 +1,36 @@
+service: net-store
+
+provider:
+  name: aws
+  runtime: dotnet6
+
+package:
+  artifact: bin/Release/net7.0/NetStore.zip
+
+functions:
+  weatherForecast:
+    handler: NetStore::NetStore.LambdaEntryPoint::FunctionHandlerAsync
+    events:
+      - httpApi:
+          method: '*'
+          path: /{proxy+}
+          # cors: true
+          cors:
+            allowedOrigins:
+              - https://app.netstore.click
+              - https://www.netstore.click
+            allowedHeaders:
+              - Content-Type
+              - Authorization
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - HEAD
+            allowCredentials: true
+            exposedResponseHeaders:
+              - Special-Response-Header
+            maxAge: 6000 # In seconds
+
