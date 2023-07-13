@@ -1,34 +1,35 @@
 service: nest-store
 frameworkVersion: '3'
+configValidationMode: error
 plugins:
     - serverless-jetpack
 
 provider:
     name: aws
-    runtime: nodejs18.x
+    runtime: nodejs16.x
     region: eu-west-2
     deploymentMethod: direct
     stage: development
     deploymentBucket: tochukwu1-bucket
-
-# package: 
-#   individually: true
-#   patterns:
-#     - '!src'
-#     - '!node_modules'
-#     - 'dist'
 
 package:
   individually: true
   exclude:
     - ./**
 
-# layers:
-#   nodejs:
-#     path: node_modules
-#     description: "Node module"
-#     compatibleRuntimes:
-#       - nodejs18.x
+layers:
+  nodejs:
+    path: ../
+    description: "Node module"
+    compatibleRuntimes:
+      - nodejs16.x
+    package: 
+      artifact: layer.zip
+      exclude: 
+        - dist/**
+        - src/**
+      include: 
+        - node_modules
 
 functions:
     bookstore:
