@@ -25,11 +25,11 @@ locals {
 
 resource "aws_key_pair" "keypair" {
   key_name = "Runtime_KeyPair"
-  public_key = file("./keys/runtime-key.pub")
+  public_key = file("./keys/simple-amz-linux.pem.pub")
 }
 
 resource "aws_security_group" "web_security_group" {
-  name = "PHP-Runtime-SecurityGroup"
+  name = "SimpleAmazonLinux-SecurityGroup"
   description = "Allows incoming HTTP/HTTPS, SSH access and all outgoing requests"
   ingress {
     from_port = 80
@@ -66,7 +66,7 @@ resource "aws_security_group" "web_security_group" {
     description = "Allow all outgoing requests of all kinds"
   }
   tags = {
-    Name = "PHP-Runtime-SecurityGroup"
+    Name = "SimpleAmazonLinux-SecurityGroup"
   }
 }
 
@@ -76,7 +76,7 @@ resource "aws_instance" "server_instance" {
   instance_type = var.instance_type
   security_groups = [aws_security_group.web_security_group.name]
   associate_public_ip_address = true
-  user_data =file("${path.module}/user-data.sh")
+  user_data = file("${path.module}/user-data.sh")
   root_block_device {
     encrypted = true
   }
@@ -84,7 +84,7 @@ resource "aws_instance" "server_instance" {
     http_tokens = "required"
   }
   tags = {
-    Name = "SimpleAmazonEC2"
+    Name = "SimpleAmazonLinux"
   }
 }
 
