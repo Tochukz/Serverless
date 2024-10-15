@@ -235,6 +235,7 @@ $ nest new nest-store
 2. __Install dependencies__  
 ```
 $ npm install @vendia/serverless-express  
+$ npm install aws-lambda
 $ npm install --save-dev serverless-jetpack
 ```
 3. __Add serverless.yml__  
