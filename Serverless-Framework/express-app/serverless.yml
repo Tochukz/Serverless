@@ -1,0 +1,69 @@
+service: pharm-server
+frameworkVersion: '3'
+useDotenv: true
+
+plugins:
+  - serverless-jetpack
+  - serverless-dotenv-plugin
+  - serverless-layers
+  - serverless-s3-deploy
+
+custom:
+  serverless-layers:  
+    packageManager: npm
+    dependenciesPath: ./package.json
+    layersDeploymentBucket: ${param:DeploymentArtifactBucket}
+  s3Deploy:
+    bucket: ${param:DeploymentArtifactBucket}
+    path: pharm-server/${self:provider.stage}
+
+provider:
+ name: aws
+ runtime: nodejs16.x
+ stage: development
+ region: eu-west-2
+ deploymentMethod: direct
+ environment:
+  # - With the serverless-dotenv-plugin enabled, all variables in .env are automatically imported
+ httpApi: 
+   cors:
+     allowedOrigins: ${param:AllowedOrigins}  
+     allowedHeaders:
+       - Content-Type
+       - Authorization
+     allowedMethods: "*"
+     allowCredentials: true
+     exposedResponseHeaders:
+       - Special-Response-Header
+       - Access-Control-Allow-Origin
+     maxAge: 6000 # In seconds
+
+params:
+  production:
+    Env: prod
+    DomainNames: pharm.firdcare.click
+    AllowedOrigins: https://pharm.firdcare.click
+    DeploymentArtifactBucket: pharm-prod-deployment-artifacts
+    CertificateArn: arn:aws:acm:us-east-1:665778208875:certificate/20426264-686e-464d-ae8b-d01d8a6d5069 # Certificate for firdcare.click
+  development:
+    Env: dev
+    DomainNames: pharm-dev.firdcare.com.ng
+    AllowedOrigins: https://pharm-dev.firdcare.com.ng
+    DeploymentArtifactBucket: pharm-dev-deployment-artifacts
+    CertificateArn: arn:aws:acm:us-east-1:966727776968:certificate/53632c03-800a-4119-8882-aa60a439a1b3 # Certificate for firdcare.com.ng
+
+functions:
+ api:
+   handler: bin/handler.main
+   events:
+     - httpApi: "*"
+
+resources: 
+  - ${file(resources/app-resources.yml)}
+
+package:
+  exclude:
+    - node_modules/**
+    - migrations/**
+    - seeders/**   
+    - tmp/** 
