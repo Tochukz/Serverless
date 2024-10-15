@@ -1,0 +1,6 @@
+{
+  "watch": ["routes", "app.js", "serverless.yaml"],
+  "ext": "js,ts,json",
+  "ignore": ["node_modules"],
+  "exec": "sls offline start"
+}

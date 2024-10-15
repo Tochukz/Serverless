@@ -1,0 +1,55 @@
+service: express-multiple-lambdas
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: eu-west-2
+
+layers:
+  nodejs:
+    path: layers/nodejs # Points to the directory where node_modules are stored
+    description: Node.js dependencies layer
+    compatibleRuntimes:
+      - nodejs20.x
+    package:
+      include:
+        - node_modules/**
+
+functions:
+  user:
+    handler: user-management/lambda.handler
+    layers:
+      - !Ref NodejsLambdaLayer
+    events:
+      - http:
+          path: user/{proxy+} # API Gateway route for app1
+          method: ANY
+          cors: true
+          request:
+            parameters:
+              paths:
+                proxy: true # Enable the proxy+ parameter to pass the full path
+
+  catalog:
+    handler: catalog-management/lambda.handler
+    layers:
+      - !Ref NodejsLambdaLayer
+      # The Layer reference is formed by appended LambdaLayer to the name of the layer written in title case (Nodejs) - NodejsLambdaLayer
+    events:
+      - http:
+          path: product/{proxy+} # API Gateway route for app2
+          method: ANY
+          cors: true
+          request:
+            parameters:
+              paths:
+                proxy: true # Enable the proxy+ parameter to pass the full path
+
+package:
+  exclude:
+    - node_modules/** # Exclude node_modules from the function package
+    - "**/node_modules/**"
+    - layers/** # Exclude the layer directory (as it's managed separately)
+
+plugins:
+  - serverless-offline # Optional: For running locally

@@ -1,0 +1,20 @@
+{
+  "name": "multi-lambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "serverless offline",
+    "dev": "nodemon",
+    "synth": "serverless package",
+    "deploy": "serverless deploy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "serverless": "^4.4.6",
+    "serverless-offline": "^14.3.2"
+  }
+}
