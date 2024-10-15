@@ -1,0 +1,113 @@
+Parameters:
+  Env:
+    Type: String
+    Description: "Deployment environment"
+    AllowedValues: [dev, staging, prod]
+    ConstraintDescription: "Deployment environment must be one of dev, staging or prod"
+    Default: ${param:Env}
+  DomainNames:
+    Type: String
+    Description: "An array of alternate domains names"
+    Default: ${param:DomainNames}
+  CertificateArn:
+    Type: String
+    Description: "The Certificate ARN of an ACM issued certificate"
+    Default: ${param:CertificateArn}
+
+Mappings:
+  Environment:
+    dev:
+      Surfix: "Dev"
+      TargetOriginId: "dev-s3-origin"
+    staging:
+      Surfix: "Staging"
+      TargetOriginId: "staging-s3-origin"
+    prod:
+      Surfix: "Prod"
+      TargetOriginId: "prod-s3-origin"
+
+Resources:
+  SiteBucket:
+    Type: "AWS::S3::Bucket"
+    DependsOn: CloudFrontOriginIdentity
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Join
+        - ""
+        - - "clinic-"
+          - !Ref Env
+          - "-site-bucket"
+
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject
+            Effect: Allow
+            Resource: !Join ["", ["arn:aws:s3:::", !Ref SiteBucket, "/*"]]
+            Principal:
+              CanonicalUser: !GetAtt CloudFrontOriginIdentity.S3CanonicalUserId
+
+  SiteDistribution:
+    Type: "AWS::CloudFront::Distribution"
+    DependsOn: [SiteBucket, CloudFrontOriginIdentity]
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Aliases: !Split [",", !Ref DomainNames]
+        DefaultCacheBehavior:
+          ViewerProtocolPolicy: redirect-to-https
+          DefaultTTL: 3600
+          ForwardedValues:
+            Cookies:
+              Forward: none
+            QueryString: true
+          TargetOriginId: !FindInMap [Environment, !Ref Env, TargetOriginId]
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+        Origins:
+          - DomainName: !GetAtt SiteBucket.RegionalDomainName
+            Id: !FindInMap [Environment, !Ref Env, TargetOriginId]
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${CloudFrontOriginIdentity}
+        DefaultRootObject: index.html
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CertificateArn
+          MinimumProtocolVersion: TLSv1
+          SslSupportMethod: sni-only
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ""
+            - - ClinicApp
+              - !FindInMap [Environment, !Ref Env, Surfix]
+              - Distribution
+
+  CloudFrontOriginIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub ${AWS::StackName}
+
+Outputs:
+  OriginS3Bucket:
+    Value: !Ref SiteBucket
+    Description: "Bucket name of the S3 origin server"
+  DistributionId:
+    Value: !Ref SiteDistribution
+    Description: "Distribution Id for the distribution"
+  CloudfrontDomain:
+    Value: !GetAtt SiteDistribution.DomainName
+    Description: "The endpoint of the distribution"
+  AlternateDomains:
+    Value: !Ref DomainNames
+    Description: "The cloud distributions alternative domains"
