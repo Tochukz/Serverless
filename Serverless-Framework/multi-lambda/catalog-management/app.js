@@ -24,9 +24,6 @@ app.use("/", categoryRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  console.log("not found url", req.url);
-  console.log("not found path", req.path);
-  console.log("originalUrl", req.originalUrl);
   next(createError(404));
 });
 
